@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -101,8 +100,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Email or Password"));
         }
 
-        String normalizedType = normalizeType(type);
-        if (!org.getType().equals(normalizedType)) {
+        if (!org.getType().equalsIgnoreCase(type)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Invalid Portal. This account is registered as a different role."));
         }
 
