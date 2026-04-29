@@ -82,23 +82,27 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        if (loginRequest.getEmail() == null || loginRequest.getPassword() == null || loginRequest.getType() == null) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String password = request.get("password");
+        String type = request.get("type");
+
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty() || type == null || type.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing credentials"));
         }
 
-        Organization org = orgRepository.findByEmail(loginRequest.getEmail().toLowerCase()).orElse(null);
+        Organization org = orgRepository.findByEmail(email.toLowerCase()).orElse(null);
         
         if (org == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Email or Password"));
         }
 
-        if (!encoder.matches(loginRequest.getPassword(), org.getPassword())) {
+        if (!encoder.matches(password, org.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Email or Password"));
         }
 
-        String type = normalizeType(loginRequest.getType());
-        if (!org.getType().equals(type)) {
+        String normalizedType = normalizeType(type);
+        if (!org.getType().equals(normalizedType)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Invalid Portal. This account is registered as a different role."));
         }
 
@@ -107,7 +111,7 @@ public class AuthController {
         }
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail().toLowerCase(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(email.toLowerCase(), password));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
