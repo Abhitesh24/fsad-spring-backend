@@ -21,6 +21,9 @@ public class AuditLog {
     @Column(name = "target_id")
     private Long targetId;
 
+    @Column(length = 1000)
+    private String details;
+
     @Column(updatable = false)
     private LocalDateTime timestamp = LocalDateTime.now();
 
@@ -34,6 +37,8 @@ public class AuditLog {
     public void setAction(String action) { this.action = action; }
     public Long getTargetId() { return targetId; }
     public void setTargetId(Long targetId) { this.targetId = targetId; }
+    public String getDetails() { return details; }
+    public void setDetails(String details) { this.details = details; }
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }

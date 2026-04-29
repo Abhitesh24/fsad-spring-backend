@@ -99,4 +99,14 @@ public class Requests {
         public String getReason() { return reason; }
         public void setReason(String reason) { this.reason = reason; }
     }
+
+    public static class AuditLogRequest {
+        private String action;
+        private String details;
+
+        public String getAction() { return action; }
+        public void setAction(String action) { this.action = action; }
+        public String getDetails() { return details; }
+        public void setDetails(String details) { this.details = details; }
+    }
 }

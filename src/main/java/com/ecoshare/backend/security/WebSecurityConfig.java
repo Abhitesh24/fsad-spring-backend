@@ -1,6 +1,7 @@
 package com.ecoshare.backend.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,9 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
@@ -55,7 +59,7 @@ public class WebSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173"); // React frontend default
+        config.addAllowedOriginPattern(frontendUrl);
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
@@ -68,7 +72,7 @@ public class WebSecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowCredentials(true);
-                    config.addAllowedOrigin("http://localhost:5173");
+                    config.addAllowedOriginPattern(frontendUrl);
                     config.addAllowedHeader("*");
                     config.addAllowedMethod("*");
                     return config;
@@ -76,14 +80,12 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> 
-                    auth.requestMatchers("/api/**").permitAll()
-                        .anyRequest().permitAll() // Allow all requests for development, including /error
+                    auth.requestMatchers("/api/auth/**", "/health").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());
-
-        // Temporarily disabled for development to prevent blocking
-        // http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
